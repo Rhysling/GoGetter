@@ -5,15 +5,17 @@ namespace GoGetter.Ops;
 
 public class DbOps(string connString)
 {
-	public async Task<List<Comic>> LoadComicsAsync(string source, string newestDateKey = "9999999", string oldestDateKey = "00000000", int limit = 20)
+	public async Task<List<Comic>> LoadComicsAsync(string? source, string newestDateKey = "9999999", string oldestDateKey = "00000000", int limit = 20)
 	{
 		string top = limit > 0 ? $"TOP ({limit})" : "";
+		string sourceSql = (source is not null) ? $"[Source] = '{source}' AND" : "";
 
 		string sql = $"""
 			SELECT {top}
 				[DateKey],
 				[Source],
 				[Img],
+				[Src],
 				[IsFound],
 				[HttpCode],
 				[Message],
@@ -22,8 +24,8 @@ public class DbOps(string connString)
 			FROM
 				[Comics]
 			WHERE
-				[Source] = '{source}'
-				AND [DateKey] <= '{newestDateKey}'
+				{sourceSql}
+				[DateKey] <= '{newestDateKey}'
 				AND [DateKey] >= '{oldestDateKey}'
 			ORDER BY
 				[DateKey] DESC;
@@ -41,6 +43,7 @@ public class DbOps(string connString)
 				[DateKey],
 				[Source],
 				[Img],
+				[Src],
 				[IsFound],
 				[HttpCode],
 				[Message],
@@ -108,6 +111,7 @@ public class DbOps(string connString)
 				[DateKey],
 				[Source],
 				[Img],
+				[Src],
 				[IsFound],
 				[HttpCode],
 				[Message],
@@ -118,6 +122,7 @@ public class DbOps(string connString)
 				@DateKey,
 				@Source,
 				@Img,
+				@Src,
 				@IsFound,
 				@HttpCode,
 				@Message,
@@ -132,6 +137,7 @@ public class DbOps(string connString)
 		cmdInsert.Parameters.AddWithValue("@DateKey", comic.DateKey);
 		cmdInsert.Parameters.AddWithValue("@Source", comic.Source);
 		cmdInsert.Parameters.AddWithValue("@Img", comic.Img ?? "");
+		cmdInsert.Parameters.AddWithValue("@Src", (comic.Src is not null) ? comic.Src : DBNull.Value);
 		cmdInsert.Parameters.AddWithValue("@IsFound", comic.IsFound);
 		cmdInsert.Parameters.AddWithValue("@HttpCode", comic.HttpCode);
 		cmdInsert.Parameters.AddWithValue("@Message", comic.Message);
@@ -139,6 +145,27 @@ public class DbOps(string connString)
 
 		await cmdInsert.ExecuteNonQueryAsync();
 		conn.Close();
+		return true;
+	}
+
+	public async Task<bool> UpdateSrcAsync(string source, string dateKey, string src)
+	{
+		string sql = $"""
+			UPDATE [Comics]
+			  SET
+				[Src] = '{src}',
+			  [LastUpdate] = '{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}'
+			WHERE
+				[Source] = '{source}' AND
+				[DateKey] = '{dateKey}';
+			""";
+
+		using var conn = new SqlConnection(connString);
+		using var cmd = new SqlCommand(sql, conn);
+		conn.Open();
+		await cmd.ExecuteNonQueryAsync();
+		conn.Close();
+
 		return true;
 	}
 
@@ -162,6 +189,7 @@ public class DbOps(string connString)
 				DateKey = rdr["DateKey"].ToString()!,
 				Source = rdr["Source"].ToString()!,
 				Img = rdr["Img"].ToString()!,
+				Src = (rdr["Src"] != DBNull.Value) ? rdr["Src"].ToString() : null,
 				HttpCode = (int)rdr["HttpCode"],
 				Message = rdr["Message"].ToString()!,
 				IsFound = rdr["IsFound"] != DBNull.Value && (bool)rdr["IsFound"],

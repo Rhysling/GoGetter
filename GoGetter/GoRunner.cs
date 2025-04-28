@@ -1,5 +1,6 @@
 ﻿using GoGetter.Models;
 using GoGetter.Ops;
+using System.Text.RegularExpressions;
 
 namespace GoGetter;
 
@@ -23,7 +24,7 @@ public static class GoRunner
 		while (i < 10)
 		{
 			dk = dt.ToString("yyyyMMdd");
-			var comic = await ParseComic.GoAsync(source, dk);
+			var comic = await Parser.FetchAndParseAsync(source, dk);
 			await db.InsertComicAsync(comic);
 
 			dt = dt.AddDays(-1);
@@ -41,7 +42,7 @@ public static class GoRunner
 
 		foreach (var comic in comics)
 		{
-			var newComic = await ParseComic.GoAsync(source, comic.DateKey);
+			var newComic = await Parser.FetchAndParseAsync(source, comic.DateKey);
 			if (newComic.IsFound) found += 1;
 			await db.InsertComicAsync(newComic);
 		}
@@ -49,5 +50,31 @@ public static class GoRunner
 		Console.WriteLine($"Source: {source}");
 		Console.WriteLine($"Missing comics: {comics.Count}");
 		Console.WriteLine($"Found comics: {found}");
+	}
+
+	public static async Task ParseSrcAsync()
+	{
+		var db = new DbOps(cs);
+
+		List<Comic> comics = await db.LoadComicsAsync(source: null, limit: 0);
+
+		int found = 0;
+
+		var re = new Regex("src=\"(?<src>[^\"]+)\"");
+
+		foreach (var comic in comics)
+		{
+			var m = re.Match(comic.Img);
+			if (m.Success)
+			{
+				comic.Src = m.Groups[1].Value;
+				await db.UpdateSrcAsync(comic.Source, comic.DateKey, comic.Src);
+				found += 1; ;
+			}
+
+		}
+
+		Console.WriteLine($"All: {comics.Count}");
+		Console.WriteLine($"Found: {found}");
 	}
 }
