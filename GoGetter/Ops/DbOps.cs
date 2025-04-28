@@ -14,8 +14,9 @@ public class DbOps(string connString)
 			SELECT {top}
 				[DateKey],
 				[Source],
-				[Img],
-				[Src],
+				[ImgTag],
+				[ImgSrc],
+				[ImgExt],
 				[IsFound],
 				[HttpCode],
 				[Message],
@@ -42,8 +43,9 @@ public class DbOps(string connString)
 			SELECT {top}
 				[DateKey],
 				[Source],
-				[Img],
-				[Src],
+				[ImgTag],
+				[ImgSrc],
+				[ImgExt],
 				[IsFound],
 				[HttpCode],
 				[Message],
@@ -110,8 +112,9 @@ public class DbOps(string connString)
 			(
 				[DateKey],
 				[Source],
-				[Img],
-				[Src],
+				[ImgTag],
+				[ImgSrc],
+				[ImgExt],
 				[IsFound],
 				[HttpCode],
 				[Message],
@@ -121,8 +124,9 @@ public class DbOps(string connString)
 			(
 				@DateKey,
 				@Source,
-				@Img,
-				@Src,
+				@ImgTag,
+				@ImgSrc,
+				@ImgExt,
 				@IsFound,
 				@HttpCode,
 				@Message,
@@ -136,8 +140,9 @@ public class DbOps(string connString)
 		using var cmdInsert = new SqlCommand(sqlInsert, conn);
 		cmdInsert.Parameters.AddWithValue("@DateKey", comic.DateKey);
 		cmdInsert.Parameters.AddWithValue("@Source", comic.Source);
-		cmdInsert.Parameters.AddWithValue("@Img", comic.Img ?? "");
-		cmdInsert.Parameters.AddWithValue("@Src", (comic.Src is not null) ? comic.Src : DBNull.Value);
+		cmdInsert.Parameters.AddWithValue("@ImgTag", comic.ImgTag ?? "");
+		cmdInsert.Parameters.AddWithValue("@ImgSrc", (comic.ImgSrc is not null) ? comic.ImgSrc : DBNull.Value);
+		cmdInsert.Parameters.AddWithValue("@ImgExt", (comic.ImgExt is not null) ? comic.ImgExt : DBNull.Value);
 		cmdInsert.Parameters.AddWithValue("@IsFound", comic.IsFound);
 		cmdInsert.Parameters.AddWithValue("@HttpCode", comic.HttpCode);
 		cmdInsert.Parameters.AddWithValue("@Message", comic.Message);
@@ -153,7 +158,7 @@ public class DbOps(string connString)
 		string sql = $"""
 			UPDATE [Comics]
 			  SET
-				[Src] = '{src}',
+				[ImgSrc] = '{src}',
 			  [LastUpdate] = '{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}'
 			WHERE
 				[Source] = '{source}' AND
@@ -188,8 +193,9 @@ public class DbOps(string connString)
 			{
 				DateKey = rdr["DateKey"].ToString()!,
 				Source = rdr["Source"].ToString()!,
-				Img = rdr["Img"].ToString()!,
-				Src = (rdr["Src"] != DBNull.Value) ? rdr["Src"].ToString() : null,
+				ImgTag = rdr["ImgTag"].ToString()!,
+				ImgSrc = (rdr["ImgSrc"] != DBNull.Value) ? rdr["ImgSrc"].ToString() : null,
+				ImgExt = (rdr["ImgExt"] != DBNull.Value) ? rdr["ImgExt"].ToString() : null,
 				HttpCode = (int)rdr["HttpCode"],
 				Message = rdr["Message"].ToString()!,
 				IsFound = rdr["IsFound"] != DBNull.Value && (bool)rdr["IsFound"],

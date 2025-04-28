@@ -4,47 +4,62 @@ using System.Text.RegularExpressions;
 
 namespace GoGetter;
 
-public static class GoRunner
+public class GoRunner(DbOps dbOps, HttpOps httpOps, ImgFileOps imgFileOps)
 {
-	private static readonly string cs = "Data Source=localhost;Initial Catalog=TestingPocos;Integrated Security=True;TrustServerCertificate=True;";
-	private static readonly string savePath = @"D:\UserData\OneDrive\Pictures\GoComics";
+	
 
-	public static async Task RunAsync()
+	public async Task FetchBatchAsync(string source, int limit = 10)
 	{
-		var db = new DbOps(cs);
-		string source = "tomtoles"; // tomtoles bliss
-
-		string dk = await db.GetEarliestDateKeyAsync(source);
-
-		//DateOnly dt = DateOnly.Parse("2020-10-27");
+		string dk = await dbOps.GetEarliestDateKeyAsync(source);
 		DateOnly dt = DateOnly.Parse($"{dk[..4]}-{dk[4..6]}-{dk[6..8]}").AddDays(-1);
 
 		int i = 0;
 
-		while (i < 10)
+		while (i < limit)
 		{
 			dk = dt.ToString("yyyyMMdd");
-			var comic = await Parser.FetchAndParseAsync(source, dk);
-			await db.InsertComicAsync(comic);
+			var result = await httpOps.FetchComicAsync(source, dk);
+
+			var comic = Parser.ParseComic(result.Value);
+			comic.HttpCode = result.HttpCode;
+			comic.Message += "|" + (result.Message ?? "");
+
+			if (!string.IsNullOrEmpty(comic.ImgSrc))
+			{
+				var resImg = await httpOps.FetchImageAsync(comic);
+
+				if (resImg.IsSuccess)
+				{
+					await imgFileOps.SaveAsync(resImg.Value);
+					comic.ImgExt = resImg.Value.Ext;
+					comic.HaveImgFile = true;
+				}
+			}
+
+			await dbOps.InsertComicAsync(comic);
 
 			dt = dt.AddDays(-1);
 			i += 1;
 		}
 	}
 
-	public static async Task GetMissingAsync()
+	public async Task GetMissingAsync()
 	{
-		var db = new DbOps(cs);
 		string source = "tomtoles"; // tomtoles bliss
 
-		List<Comic> comics = await db.LoadMissingComicsAsync(source);
+		List<Comic> comics = await dbOps.LoadMissingComicsAsync(source);
 		int found = 0;
 
 		foreach (var comic in comics)
 		{
-			var newComic = await Parser.FetchAndParseAsync(source, comic.DateKey);
+			var result = await httpOps.FetchComicAsync(source, comic.DateKey);
+
+			if (!result.IsSuccess) continue;
+
+			var newComic = Parser.ParseComic(result.Value);
 			if (newComic.IsFound) found += 1;
-			await db.InsertComicAsync(newComic);
+
+			await dbOps.InsertComicAsync(newComic);
 		}
 
 		Console.WriteLine($"Source: {source}");
@@ -52,11 +67,9 @@ public static class GoRunner
 		Console.WriteLine($"Found comics: {found}");
 	}
 
-	public static async Task ParseSrcAsync()
+	public async Task ParseSrcAsync()
 	{
-		var db = new DbOps(cs);
-
-		List<Comic> comics = await db.LoadComicsAsync(source: null, limit: 0);
+		List<Comic> comics = await dbOps.LoadComicsAsync(source: null, limit: 0);
 
 		int found = 0;
 
@@ -64,11 +77,11 @@ public static class GoRunner
 
 		foreach (var comic in comics)
 		{
-			var m = re.Match(comic.Img);
+			var m = re.Match(comic.ImgTag);
 			if (m.Success)
 			{
-				comic.Src = m.Groups[1].Value;
-				await db.UpdateSrcAsync(comic.Source, comic.DateKey, comic.Src);
+				comic.ImgSrc = m.Groups[1].Value;
+				await dbOps.UpdateSrcAsync(comic.Source, comic.DateKey, comic.ImgSrc);
 				found += 1; ;
 			}
 
