@@ -5,6 +5,19 @@ namespace GoGetter.Ops;
 
 public class DbOps(string connString)
 {
+	private static readonly string sqlColumns = """
+		[DateKey],
+		[Source],
+		[ImgTag],
+		[ImgSrc],
+		[ImgExt],
+		[IsFound],
+		[HttpCode],
+		[Message],
+		[LastUpdate],
+		[HaveImgFile]
+		""";
+
 	public async Task<List<Comic>> LoadComicsAsync(string? source, string newestDateKey = "9999999", string oldestDateKey = "00000000", int limit = 20)
 	{
 		string top = limit > 0 ? $"TOP ({limit})" : "";
@@ -12,16 +25,7 @@ public class DbOps(string connString)
 
 		string sql = $"""
 			SELECT {top}
-				[DateKey],
-				[Source],
-				[ImgTag],
-				[ImgSrc],
-				[ImgExt],
-				[IsFound],
-				[HttpCode],
-				[Message],
-				[LastUpdate],
-				[HaveImgFile]
+				{sqlColumns}
 			FROM
 				[Comics]
 			WHERE
@@ -35,22 +39,27 @@ public class DbOps(string connString)
 		return await LoadComicsSqlAsync(sql);
 	}
 
+	public async Task<List<Comic>> LoadAllComicsAsync()
+	{
+		string sql = $"""
+			SELECT
+				{sqlColumns}
+			FROM
+				[Comics]
+			ORDER BY
+				[DateKey] DESC;
+			""";
+
+		return await LoadComicsSqlAsync(sql);
+	}
+
 	public async Task<List<Comic>> LoadMissingComicsAsync(string source, string newestDateKey = "9999999", int limit = 20)
 	{
 		string top = limit > 0 ? $"TOP ({limit})" : "";
 
 		string sql = $"""
 			SELECT {top}
-				[DateKey],
-				[Source],
-				[ImgTag],
-				[ImgSrc],
-				[ImgExt],
-				[IsFound],
-				[HttpCode],
-				[Message],
-				[LastUpdate],
-				[HaveImgFile]
+				{sqlColumns}
 			FROM
 				[Comics]
 			WHERE
@@ -110,15 +119,7 @@ public class DbOps(string connString)
 		string sqlInsert = $"""
 			INSERT INTO [Comics]
 			(
-				[DateKey],
-				[Source],
-				[ImgTag],
-				[ImgSrc],
-				[ImgExt],
-				[IsFound],
-				[HttpCode],
-				[Message],
-				[HaveImgFile]
+				{sqlColumns}
 			)
 			VALUES
 			(
@@ -130,6 +131,7 @@ public class DbOps(string connString)
 				@IsFound,
 				@HttpCode,
 				@Message,
+				@LastUpdate,
 				@HaveImgFile
 			);
 			""";
@@ -146,6 +148,7 @@ public class DbOps(string connString)
 		cmdInsert.Parameters.AddWithValue("@IsFound", comic.IsFound);
 		cmdInsert.Parameters.AddWithValue("@HttpCode", comic.HttpCode);
 		cmdInsert.Parameters.AddWithValue("@Message", comic.Message);
+		cmdInsert.Parameters.AddWithValue("@LastUpdate", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff"));
 		cmdInsert.Parameters.AddWithValue("@HaveImgFile", comic.HaveImgFile);
 
 		await cmdInsert.ExecuteNonQueryAsync();
@@ -153,7 +156,7 @@ public class DbOps(string connString)
 		return true;
 	}
 
-	public async Task<bool> UpdateSrcAsync(string source, string dateKey, string src)
+	public async Task<bool> UpdateImgSrcAsync(string source, string dateKey, string src)
 	{
 		string sql = $"""
 			UPDATE [Comics]

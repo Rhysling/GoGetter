@@ -43,36 +43,39 @@ public class GoRunner(DbOps dbOps, HttpOps httpOps, ImgFileOps imgFileOps)
 		}
 	}
 
-	public async Task GetMissingAsync()
+	public async Task InfillMissingImgFilesAsync()
 	{
-		string source = "tomtoles"; // tomtoles bliss
+		List<Comic> comics = await dbOps.LoadAllComicsAsync();
+		comics = [.. comics.Where(c => c.HttpCode == 200 && !c.HaveImgFile)];
 
-		List<Comic> comics = await dbOps.LoadMissingComicsAsync(source);
 		int found = 0;
-
 		foreach (var comic in comics)
 		{
-			var result = await httpOps.FetchComicAsync(source, comic.DateKey);
+			if (!string.IsNullOrEmpty(comic.ImgSrc))
+			{
+				var resImg = await httpOps.FetchImageAsync(comic);
 
-			if (!result.IsSuccess) continue;
-
-			var newComic = Parser.ParseComic(result.Value);
-			if (newComic.IsFound) found += 1;
-
-			await dbOps.InsertComicAsync(newComic);
+				if (resImg.IsSuccess)
+				{
+					await imgFileOps.SaveAsync(resImg.Value);
+					comic.ImgExt = resImg.Value.Ext;
+					comic.HaveImgFile = true;
+					await dbOps.InsertComicAsync(comic);
+					found += 1;
+				}
+			}
 		}
 
-		Console.WriteLine($"Source: {source}");
-		Console.WriteLine($"Missing comics: {comics.Count}");
-		Console.WriteLine($"Found comics: {found}");
+		Console.WriteLine($"All missing: {comics.Count}");
+		Console.WriteLine($"Found: {found}");
 	}
 
-	public async Task ParseSrcAsync()
+	public async Task ParseSrcFromImgTagAsync()
 	{
-		List<Comic> comics = await dbOps.LoadComicsAsync(source: null, limit: 0);
+		List<Comic> comics = await dbOps.LoadAllComicsAsync();
+		comics = [.. comics.Where(c => !string.IsNullOrEmpty(c.ImgTag) && string.IsNullOrEmpty(c.ImgSrc))];
 
 		int found = 0;
-
 		var re = new Regex("src=\"(?<src>[^\"]+)\"");
 
 		foreach (var comic in comics)
@@ -81,13 +84,13 @@ public class GoRunner(DbOps dbOps, HttpOps httpOps, ImgFileOps imgFileOps)
 			if (m.Success)
 			{
 				comic.ImgSrc = m.Groups[1].Value;
-				await dbOps.UpdateSrcAsync(comic.Source, comic.DateKey, comic.ImgSrc);
+				await dbOps.UpdateImgSrcAsync(comic.Source, comic.DateKey, comic.ImgSrc);
 				found += 1; ;
 			}
 
 		}
 
-		Console.WriteLine($"All: {comics.Count}");
+		Console.WriteLine($"All eligible: {comics.Count}");
 		Console.WriteLine($"Found: {found}");
 	}
 }

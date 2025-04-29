@@ -20,9 +20,7 @@ class Program
 
 	static async Task MainAsync(string[] _)
 	{
-		
-		// Config
-
+		// Config ***************
 		//var builder = new ConfigurationBuilder()
 		//	.AddJsonFile("appsettings.json", true, true)
 		//	.AddEnvironmentVariables();
@@ -30,11 +28,10 @@ class Program
 		//var appSettings = configurationRoot.Get<AppSettings>() ?? new();
 
 		await goRunner.FetchBatchAsync("tomtoles", limit: 10);
-		//await GoRunner.GetMissingAsync();
-		//await GoRunner.ParseSrcAsync();
 
+		//await goRunner.InfillMissingImgFilesAsync();
+		//await goRunner.ParseSrcFromImgTagAsync();
 
-		Console.WriteLine();
 		Console.WriteLine("Done.");
 		Console.ReadKey();
 	}
@@ -42,7 +39,5 @@ class Program
 	static void RegisterServices()
 	{
 		client.DefaultRequestHeaders.Add("user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36");
-		
 	}
-
 }
