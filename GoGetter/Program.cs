@@ -1,7 +1,6 @@
 ﻿using GoGetter;
 using GoGetter.Ops;
 
-
 class Program
 {
 	private static readonly string cs = "Data Source=localhost;Initial Catalog=TestingPocos;Integrated Security=True;TrustServerCertificate=True;";
@@ -27,7 +26,7 @@ class Program
 		//var configurationRoot = builder.Build();
 		//var appSettings = configurationRoot.Get<AppSettings>() ?? new();
 
-		await goRunner.FetchBatchAsync("tomtoles", limit: 10);
+		await goRunner.FetchBatchAsync("tomthedancingbug", limit: 15); // tomthedancingbug tomtoles
 
 		//await goRunner.InfillMissingImgFilesAsync();
 		//await goRunner.ParseSrcFromImgTagAsync();

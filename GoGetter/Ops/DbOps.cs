@@ -92,7 +92,7 @@ public class DbOps(string connString)
 		conn.Open();
 		dateKey = (await cmd.ExecuteScalarAsync() ?? "").ToString()!;
 		conn.Close();
-		if (dateKey.Length != 8) dateKey = DateTime.Now.ToString("yyyyMMdd");
+		if (dateKey.Length != 8) dateKey = DateTime.Now.AddDays(1).ToString("yyyyMMdd");
 
 		return dateKey;
 	}

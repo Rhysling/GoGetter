@@ -15,6 +15,12 @@ public static class Parser
 			DateKey = comicHtml.DateKey
 		};
 
+		if (string.IsNullOrWhiteSpace(comicHtml.Html))
+		{
+			comic.Message = "HTML is empty.";
+			return comic;
+		}
+
 		var parser = new HtmlParser();
 		IHtmlDocument doc = parser.ParseDocument(comicHtml.Html);
 
