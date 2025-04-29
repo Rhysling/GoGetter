@@ -1,10 +1,5 @@
 ﻿using GoGetter.Models;
 using ImageMagick;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace GoGetter.Ops;
 
@@ -18,8 +13,6 @@ public class HttpOps(HttpClient client)
 			throw new ArgumentException("DateKey must be 8 characters long", nameof(dateKey));
 
 		string url = $"https://www.gocomics.com/{source}/{dateKey[..4]}/{dateKey[4..6]}/{dateKey[6..8]}";
-		//string urlBase = "https://www.gocomics.com/peanuts/2025/04/17/"; bliss calvinandhobbes doonesbury tomthedancingbug
-
 
 		HttpResult<ComicHtml> result;
 		ComicHtml comicHtml = new() { Source = source, DateKey = dateKey };
@@ -41,7 +34,6 @@ public class HttpOps(HttpClient client)
 			result = new(comicHtml, ex.Message);
 			return result;
 		}
-
 	}
 
 	public async Task<HttpResult<ImgFile>> FetchImageAsync(Comic comic)

@@ -160,9 +160,9 @@ public class DbOps(string connString)
 	{
 		string sql = $"""
 			UPDATE [Comics]
-			  SET
+			SET
 				[ImgSrc] = '{src}',
-			  [LastUpdate] = '{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}'
+				[LastUpdate] = '{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}'
 			WHERE
 				[Source] = '{source}' AND
 				[DateKey] = '{dateKey}';
@@ -176,7 +176,6 @@ public class DbOps(string connString)
 
 		return true;
 	}
-
 
 	// ***** PRIVATE *****
 
@@ -211,5 +210,4 @@ public class DbOps(string connString)
 		conn.Close();
 		return comics;
 	}
-
 }

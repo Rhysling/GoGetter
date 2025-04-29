@@ -6,8 +6,6 @@ namespace GoGetter;
 
 public class GoRunner(DbOps dbOps, HttpOps httpOps, ImgFileOps imgFileOps)
 {
-	
-
 	public async Task FetchBatchAsync(string source, int limit = 10)
 	{
 		string dk = await dbOps.GetEarliestDateKeyAsync(source);

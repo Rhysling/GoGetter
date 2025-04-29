@@ -12,8 +12,4 @@ public class ImgFileOps(string savePath)
 		await File.WriteAllBytesAsync(filePath, imgFile.FileBytes!);
 		return true;
 	}
-
-
-
-
 }
