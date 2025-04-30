@@ -1,6 +1,6 @@
 ﻿namespace GoGetter.Models;
 
-public class ComicHtml
+public class ComicHtmlX
 {
 	public string DateKey { get; set; } = "";
 	public string Source { get; set; } = "";

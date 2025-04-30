@@ -26,7 +26,7 @@ class Program
 		//var configurationRoot = builder.Build();
 		//var appSettings = configurationRoot.Get<AppSettings>() ?? new();
 
-		await goRunner.FetchBatchAsync("perry-bible-fellowship", limit: 30); // tomthedancingbug tomtoles perry-bible-fellowship bliss calvinandhobbes doonesbury
+		await goRunner.FetchBatchAsync("perry-bible-fellowship", limit: 10); // tomthedancingbug tomtoles perry-bible-fellowship bliss calvinandhobbes doonesbury
 
 		//await goRunner.InfillMissingImgFilesAsync();
 		//await goRunner.ParseSrcFromImgTagAsync();

@@ -7,29 +7,23 @@ namespace GoGetter.Ops;
 
 public static class Parser
 {
-	public static Comic ParseComic(ComicHtml comicHtml)
+	public static Comic ParseComic(Comic comic, string html)
 	{
-		var comic = new Comic
+		if (string.IsNullOrWhiteSpace(html))
 		{
-			Source = comicHtml.Source,
-			DateKey = comicHtml.DateKey
-		};
-
-		if (string.IsNullOrWhiteSpace(comicHtml.Html))
-		{
-			comic.Message = "HTML is empty.";
+			comic.Message += " | HTML is empty.";
 			return comic;
 		}
 
 		var parser = new HtmlParser();
-		IHtmlDocument doc = parser.ParseDocument(comicHtml.Html);
+		IHtmlDocument doc = parser.ParseDocument(html);
 
-		comic.Message = doc.QuerySelector("title")?.TextContent ?? "Title not found.";
-
+		// V1
 		var imgs = doc.QuerySelectorAll("div[class^=\"ShowComicViewer\"] img[class^=\"Comic\"]");
 		var img = imgs.FirstOrDefault();
 		if (img != null)
 		{
+			comic.Message += " | V1 hit.";
 			comic.IsFound = true;
 			comic.ImgTag = img.OuterHtml;
 			comic.ImgSrc = ParseImgTagSrc(img);
@@ -41,7 +35,7 @@ public static class Parser
 		img = imgs.FirstOrDefault();
 		if (img != null)
 		{
-			comic.Message = "V2 hit";
+			comic.Message += " | V2 hit.";
 			comic.IsFound = true;
 			comic.ImgTag = img.OuterHtml;
 			comic.ImgSrc = ParseImgTagSrc(img);
@@ -53,7 +47,7 @@ public static class Parser
 		img = imgs.FirstOrDefault();
 		if (img != null)
 		{
-			comic.Message = "Comic Viewer";
+			comic.Message += " | ComicViewer hit.";
 			comic.IsFound = true;
 			comic.ImgTag = img.OuterHtml;
 			comic.ImgSrc = ParseImgTagSrc(img);

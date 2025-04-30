@@ -5,7 +5,7 @@ namespace GoGetter.Ops;
 
 public class HttpOps(HttpClient client)
 {
-	public async Task<HttpResult<ComicHtml>> FetchComicAsync(string source, string dateKey)
+	public async Task<HttpResult<string>> FetchComicAsync(string source, string dateKey)
 	{
 		ArgumentException.ThrowIfNullOrEmpty(source);
 		ArgumentException.ThrowIfNullOrEmpty(dateKey);
@@ -14,25 +14,19 @@ public class HttpOps(HttpClient client)
 
 		string url = $"https://www.gocomics.com/{source}/{dateKey[..4]}/{dateKey[4..6]}/{dateKey[6..8]}";
 
-		HttpResult<ComicHtml> result;
-		ComicHtml comicHtml = new() { Source = source, DateKey = dateKey };
-
 		try
 		{
-			comicHtml.Html = await client.GetStringAsync(url);
-			result = new(comicHtml, "", 200);
-			return result;
+			string html = await client.GetStringAsync(url);
+			return new HttpResult<string>(html, "Ok.", 200);
 		}
 		catch (HttpRequestException ex)
 		{
 			int statusCode = ex.StatusCode.HasValue ? (int)ex.StatusCode : 999;
-			result = new(comicHtml, ex.Message, statusCode);
-			return result;
+			return new HttpResult<string>("", ex.Message, statusCode);
 		}
 		catch (Exception ex)
 		{
-			result = new(comicHtml, ex.Message);
-			return result;
+			return new HttpResult<string>("", ex.Message);
 		}
 	}
 

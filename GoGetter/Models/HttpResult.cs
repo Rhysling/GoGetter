@@ -1,6 +1,6 @@
 ﻿namespace GoGetter.Models;
 
-public class HttpResult<T>(T value, string message, int httpCode = 999) where T : new()
+public class HttpResult<T>(T value, string message, int httpCode = 999)
 {
 	public T Value => value;
 	public int HttpCode => httpCode;

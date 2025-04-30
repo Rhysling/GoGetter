@@ -16,21 +16,31 @@ public class GoRunner(DbOps dbOps, HttpOps httpOps, ImgFileOps imgFileOps)
 		while (i < limit)
 		{
 			dk = dt.ToString("yyyyMMdd");
-			var result = await httpOps.FetchComicAsync(source, dk);
 
-			var comic = Parser.ParseComic(result.Value);
-			comic.HttpCode = result.HttpCode;
-			comic.Message += "|" + (result.Message ?? "");
-
-			if (!string.IsNullOrEmpty(comic.ImgSrc))
+			var comic = new Comic
 			{
-				var resImg = await httpOps.FetchImageAsync(comic);
+				Source = source,
+				DateKey = dk
+			};
 
-				if (resImg.IsSuccess)
+			var result = await httpOps.FetchComicAsync(source, dk);
+			comic.HttpCode = result.HttpCode;
+			comic.Message = result.Message ?? "";
+
+			if (result.IsSuccess)
 				{
-					await imgFileOps.SaveAsync(resImg.Value);
-					comic.ImgExt = resImg.Value.Ext;
-					comic.HaveImgFile = true;
+				comic = Parser.ParseComic(comic, result.Value);
+
+				if (!string.IsNullOrWhiteSpace(comic.ImgSrc))
+				{
+					var resImg = await httpOps.FetchImageAsync(comic);
+
+					if (resImg.IsSuccess)
+					{
+						await imgFileOps.SaveAsync(resImg.Value);
+						comic.ImgExt = resImg.Value.Ext;
+						comic.HaveImgFile = true;
+					}
 				}
 			}
 
