@@ -59,7 +59,7 @@ public class GoRunner(DbOps dbOps, HttpOps httpOps, ImgFileOps imgFileOps)
 		int found = 0;
 		foreach (var comic in comics)
 		{
-			if (!string.IsNullOrEmpty(comic.ImgSrc))
+			if (!string.IsNullOrWhiteSpace(comic.ImgSrc))
 			{
 				var resImg = await httpOps.FetchImageAsync(comic);
 
@@ -81,7 +81,7 @@ public class GoRunner(DbOps dbOps, HttpOps httpOps, ImgFileOps imgFileOps)
 	public async Task ParseSrcFromImgTagAsync()
 	{
 		List<Comic> comics = await dbOps.LoadAllComicsAsync();
-		comics = [.. comics.Where(c => !string.IsNullOrEmpty(c.ImgTag) && string.IsNullOrEmpty(c.ImgSrc))];
+		comics = [.. comics.Where(c => !string.IsNullOrWhiteSpace(c.ImgTag) && string.IsNullOrEmpty(c.ImgSrc))];
 
 		int found = 0;
 		var re = new Regex("src=\"(?<src>[^\"]+)\"");

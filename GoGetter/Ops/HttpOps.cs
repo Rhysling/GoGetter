@@ -34,12 +34,13 @@ public class HttpOps(HttpClient client)
 	{
 		ImgFile imgFile = new() { Source = comic.Source, DateKey = comic.DateKey };
 		int httpCode = 999;
-		string message = "";
+		string message;
 
 		try
 		{
 			imgFile.FileBytes = await client.GetByteArrayAsync(comic.ImgSrc);
 			httpCode = 200;
+			message = "Ok.";
 		}
 		catch (HttpRequestException ex)
 		{
