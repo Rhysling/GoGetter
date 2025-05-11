@@ -9,7 +9,8 @@ class Program
 	private static readonly HttpClient client = new ();
 	private static readonly HttpOps httpOps = new(client);
 	private static readonly ImgFileOps imgFileOps = new(savePath);
-	private static readonly GoRunner goRunner = new(dbOps, httpOps, imgFileOps);
+	//private static readonly GoRunner goRunner = new(dbOps, httpOps, imgFileOps);
+	private static readonly GoTester goTester = new(httpOps);
 
 	static void Main(string[] args)
 	{
@@ -26,10 +27,12 @@ class Program
 		//var configurationRoot = builder.Build();
 		//var appSettings = configurationRoot.Get<AppSettings>() ?? new();
 
-		await goRunner.FetchBatchAsync("perry-bible-fellowship", limit: 10); // tomthedancingbug tomtoles perry-bible-fellowship bliss calvinandhobbes doonesbury
+		//await goRunner.FetchBatchAsync("perry-bible-fellowship", limit: 10); // tomthedancingbug tomtoles perry-bible-fellowship bliss calvinandhobbes doonesbury
 
 		//await goRunner.InfillMissingImgFilesAsync();
 		//await goRunner.ParseSrcFromImgTagAsync();
+
+		await goTester.TestFetchAsync();
 
 		Console.WriteLine("Done.");
 		Console.ReadKey();
