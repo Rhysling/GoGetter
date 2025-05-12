@@ -18,6 +18,7 @@ public class DbOps(string connString)
 		[HaveImgFile]
 		""";
 
+	// ***** Comic Lists *****
 	public async Task<List<Comic>> LoadComicsAsync(string? source, string newestDateKey = "9999999", string oldestDateKey = "00000000", int limit = 20)
 	{
 		string top = limit > 0 ? $"TOP ({limit})" : "";
@@ -74,6 +75,7 @@ public class DbOps(string connString)
 		return await LoadComicsSqlAsync(sql);
 	}
 
+	// ***** Scalars *****
 	public async Task<string> GetEarliestDateKeyAsync(string source)
 	{
 		string sql = $"""
@@ -97,6 +99,30 @@ public class DbOps(string connString)
 		return dateKey;
 	}
 
+	public async Task<string> GetLatestDateKeyAsync(string source)
+	{
+		string sql = $"""
+			SELECT
+				MAX([DateKey]) AS DateKey
+			FROM
+				[Comics]
+			WHERE
+				[Source] = '{source}';
+			""";
+
+		string dateKey;
+
+		using var conn = new SqlConnection(connString);
+		using var cmd = new SqlCommand(sql, conn);
+		conn.Open();
+		dateKey = (await cmd.ExecuteScalarAsync() ?? "").ToString()!;
+		conn.Close();
+		if (dateKey.Length != 8) dateKey = DateTime.Now.ToString("yyyyMMdd");
+
+		return dateKey;
+	}
+
+	// ***** Insert / Update *****
 	public async Task<bool> InsertComicAsync(Comic comic)
 	{
 		//string sqlCount = $"SELECT COUNT(*) FROM Comics WHERE (DateKey = '{comic.DateKey}' AND Source = '{comic.Source}');";

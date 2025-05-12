@@ -3,8 +3,16 @@ using ImageMagick;
 
 namespace GoGetter.Ops;
 
-public class HttpOps(HttpClient client)
+public class HttpOps
 {
+	private readonly HttpClient client;
+
+	public HttpOps(HttpClient client, string userAgent)
+	{
+		this.client = client;
+		this.client.DefaultRequestHeaders.Add("user-agent", userAgent);
+	}
+
 	public async Task<HttpResult<string>> FetchComicAsync(string source, string dateKey)
 	{
 		ArgumentException.ThrowIfNullOrEmpty(source);

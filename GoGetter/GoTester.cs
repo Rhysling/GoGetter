@@ -7,15 +7,15 @@ using System.Threading.Tasks;
 
 namespace GoGetter;
 
-public class GoTester(HttpOps httpOps)
+public class GoTester(PuppetOps puppetOps)
 {
 	public async Task TestFetchAsync()
 	{
-		string source = "calvinandhobbes";
-		string dk = "20250508";
+		string source = "tomthedancingbug"; //calvinandhobbes
+		string dk = "20250428";             //20250508
 		string outPath = $@"D:\yy\tp1\Go_{source}_{dk}.html";
 
-		var result = await httpOps.FetchComicAsync(source, dk);
+		var result = await puppetOps.FetchComicAsync(source, dk);
 		if (result.IsSuccess)
 		{
 			File.WriteAllText(outPath, result.Value);
